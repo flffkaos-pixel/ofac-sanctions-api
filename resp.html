@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>OFAC Sanctions Search</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0f0f0f;color:#e0e0e0;min-height:100vh}
+.container{max-width:800px;margin:0 auto;padding:2rem 1rem}
+h1{font-size:1.5rem;font-weight:600;margin-bottom:0.25rem}
+.subtitle{color:#888;font-size:0.85rem;margin-bottom:1.5rem}
+.search-box{display:flex;gap:0.5rem;margin-bottom:1rem}
+.search-box input{flex:1;padding:0.65rem 1rem;border:1px solid #333;border-radius:6px;background:#1a1a1a;color:#e0e0e0;font-size:1rem;outline:none}
+.search-box input:focus{border-color:#ef4444}
+.search-box button{padding:0.65rem 1.5rem;background:#ef4444;color:#fff;border:none;border-radius:6px;font-size:1rem;cursor:pointer;font-weight:500}
+.search-box button:disabled{opacity:0.5;cursor:not-allowed}
+.filters{display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap}
+.filters select{padding:0.4rem 0.75rem;border:1px solid #333;border-radius:4px;background:#1a1a1a;color:#e0e0e0;font-size:0.85rem}
+.status{font-size:0.85rem;color:#888;margin-bottom:1rem}
+.error{color:#ef4444;font-size:0.85rem;margin-bottom:1rem}
+.result-card{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:1rem;margin-bottom:0.75rem}
+.result-card .name{font-size:1rem;font-weight:600;color:#fff;margin-bottom:0.25rem}
+.result-card .meta{font-size:0.8rem;color:#888}
+.result-card .meta span{margin-right:1rem}
+.result-card .programs{margin-top:0.5rem;display:flex;flex-wrap:wrap;gap:0.35rem}
+.result-card .program{font-size:0.7rem;padding:0.15rem 0.5rem;border-radius:99px;background:#2a2a2a;color:#aaa}
+.badge{display:inline-block;font-size:0.65rem;padding:0.15rem 0.5rem;border-radius:99px;font-weight:600}
+.badge-person{background:#1e3a5f;color:#60a5fa}
+.badge-org{background:#3b1e1e;color:#f87171}
+.badge-vessel{background:#1e3b2e;color:#4ade80}
+.badge-airplane{background:#3b2e1e;color:#fbbf24}
+.empty{text-align:center;padding:3rem 1rem;color:#555;font-size:0.9rem}
+footer{text-align:center;padding:2rem;color:#444;font-size:0.75rem}
+footer a{color:#666}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>OFAC SDN Search</h1>
+  <p class="subtitle">US Treasury sanctions target search &middot; OpenSanctions data</p>
+  <div class="search-box">
+    <input type="text" id="query" placeholder="Enter name (e.g. putin, kim jong, hamas...)" autofocus>
+    <button id="searchBtn">Search</button>
+  </div>
+  <div class="filters">
+    <select id="schema">
+      <option value="">All types</option>
+      <option value="Person">Person</option>
+      <option value="Organization">Organization</option>
+      <option value="Company">Company</option>
+      <option value="Vessel">Vessel</option>
+      <option value="Airplane">Airplane</option>
+      <option value="LegalEntity">LegalEntity</option>
+    </select>
+    <span id="status" class="status"></span>
+  </div>
+  <div id="error" class="error"></div>
+  <div id="results"></div>
+  <footer>Source: <a href="https://www.opensanctions.org" target="_blank">OpenSanctions</a> (CC-BY 4.0)</footer>
+</div>
+<script>
+var qi=document.getElementById('query'),sb=document.getElementById('searchBtn'),ss=document.getElementById('schema'),se=document.getElementById('status'),er=document.getElementById('error'),re=document.getElementById('results');
+function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function render(m){if(!m.length){re.innerHTML='<div class="empty">No results</div>';return}
+re.innerHTML=m.map(function(e){var s=(e.schema||'').toLowerCase(),bc=s.indexOf('person')>=0?'badge-person':s.indexOf('vessel')>=0?'badge-vessel':s.indexOf('airplane')>=0||s.indexOf('aircraft')>=0?'badge-airplane':'badge-org';return '<div class="result-card"><div class="name">'+esc(e.name)+' <span class="badge '+bc+'">'+(e.schema||'?')+'</span></div><div class="meta">'+(e.aliases&&e.aliases.length?'<span>AKA: '+esc(e.aliases.slice(0,5).join(', '))+(e.aliases.length>5?'...':'')+'</span>':'')+'</div><div class="meta">'+(e.countries&&e.countries.length?'<span>Countries: '+e.countries.join(', ')+'</span>':'')+'</div><div class="programs">'+(e.programs||[]).map(function(p){return '<span class="program">'+esc(p)+'</span>'}).join('')+'</div></div>'}).join('')}
+sb.addEventListener('click',function(){var q=qi.value.trim();if(!q||q.length<2)return;sb.disabled=true;er.textContent='';se.textContent='Searching...';var p=new URLSearchParams({q:q,limit:'50'});var s=ss.value;if(s)p.set('schema',s);fetch('/api/search?'+p).then(function(r){if(!r.ok)return r.json().then(function(e){throw new Error(e.error||'HTTP '+r.status)});return r.json()}).then(function(d){se.textContent=d.total+' results';render(d.matches)}).catch(function(e){er.textContent=e.message;se.textContent='';re.innerHTML=''}).finally(function(){sb.disabled=false})});
+qi.addEventListener('keydown',function(e){if(e.key==='Enter')sb.click()});
+</script>
+</body>
+</html>
