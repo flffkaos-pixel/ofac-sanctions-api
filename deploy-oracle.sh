@@ -12,7 +12,7 @@ node -v
 
 echo "=== 3. 앱 설치 ==="
 cd /opt
-sudo git clone https://github.com/YOUR_USERNAME/ofac-sanctions-api.git
+sudo git clone https://github.com/flffkaos-pixel/ofac-sanctions-api.git
 sudo chown -R ubuntu:ubuntu ofac-sanctions-api
 cd ofac-sanctions-api
 npm install --production
