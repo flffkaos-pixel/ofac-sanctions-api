@@ -3,359 +3,454 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>OFAC API — 미국 제재 대상 검색 API</title>
+<title>OFAC KYC — 글로벌 제재 스크리닝 플랫폼</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Noto Sans KR','Segoe UI',sans-serif;background:#0a0a0b;color:#e5e5e5;line-height:1.6}
-.container{max-width:960px;margin:0 auto;padding:0 1.5rem}
+body{font-family:'Noto Sans KR','Segoe UI',sans-serif;background:#0a0a0b;color:#e5e5e5;min-height:100vh;overflow-x:hidden}
 a{color:#f44;text-decoration:none}
 a:hover{text-decoration:underline}
 
-/* nav */
-nav{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 1.5rem;max-width:1024px;margin:0 auto}
-nav .logo{font-weight:700;font-size:1.2rem;color:#fff;letter-spacing:-0.5px}
-nav .logo span{color:#ef4444}
-nav .nav-links{display:flex;gap:1.5rem;align-items:center}
-nav .nav-links a{color:#aaa;font-size:0.9rem}
-nav .nav-links a:hover{color:#fff}
+/* layout */
+.app{display:flex;min-height:100vh}
+.sidebar{width:240px;background:#0f0f10;border-right:1px solid #1a1a1b;padding:1.5rem 0;position:fixed;height:100vh;overflow-y:auto;z-index:100;transition:transform 0.3s}
+.sidebar .logo{padding:0 1.25rem;margin-bottom:2rem;font-size:1.1rem;font-weight:700;color:#fff}
+.sidebar .logo span{color:#ef4444}
+.sidebar nav a{display:flex;align-items:center;gap:0.75rem;padding:0.65rem 1.25rem;color:#888;font-size:0.9rem;transition:all 0.15s;border-left:3px solid transparent}
+.sidebar nav a:hover,.sidebar nav a.active{color:#e5e5e5;background:#141415;border-left-color:#ef4444}
+.sidebar .user-info{padding:1rem 1.25rem;border-top:1px solid #1a1a1b;margin-top:auto;font-size:0.8rem;color:#666}
+.main{flex:1;margin-left:240px;padding:2rem}
 
-/* hero */
-.hero{text-align:center;padding:5rem 0 3rem}
-.hero .badge{display:inline-block;font-size:0.75rem;padding:0.3rem 0.8rem;border-radius:99px;background:#1a1a1a;color:#ef4444;border:1px solid #ef4444;margin-bottom:1rem;font-weight:500}
-.hero h1{font-size:2.5rem;font-weight:700;margin-bottom:1rem;letter-spacing:-1px}
-.hero h1 span{color:#ef4444}
-.hero p{font-size:1.1rem;color:#888;max-width:600px;margin:0 auto 2rem}
-.hero .cta{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
-.btn{display:inline-block;padding:0.75rem 2rem;border-radius:8px;font-size:1rem;font-weight:600;border:none;cursor:pointer;transition:all 0.2s}
+/* landing (no auth) */
+.landing{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:2rem;margin-left:0}
+.landing .badge{display:inline-block;padding:0.3rem 0.8rem;border-radius:99px;background:#1a1a1a;color:#ef4444;border:1px solid #ef4444;font-size:0.75rem;font-weight:500;margin-bottom:1rem}
+.landing h1{font-size:2.5rem;font-weight:700;margin-bottom:1rem}
+.landing h1 span{color:#ef4444}
+.landing p{color:#888;font-size:1.05rem;max-width:550px;margin:0 auto 2rem;line-height:1.7}
+.landing .features{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;max-width:700px;margin:0 auto 2rem;text-align:left}
+.landing .feature{background:#121213;border:1px solid #1f1f1f;border-radius:10px;padding:1.25rem}
+.landing .feature .icon{font-size:1.3rem;margin-bottom:0.4rem}
+.landing .feature h3{font-size:0.9rem;margin-bottom:0.3rem}
+.landing .feature p{font-size:0.8rem;color:#888;margin:0}
+
+/* pricing */
+.pricing{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;max-width:750px;margin:2rem auto;text-align:left}
+.pricing-card{background:#121213;border:1px solid #1f1f1f;border-radius:12px;padding:1.5rem;text-align:center}
+.pricing-card.featured{border-color:#ef4444;position:relative}
+.pricing-card.featured::before{content:'BEST';position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#ef4444;color:#fff;font-size:0.65rem;font-weight:600;padding:0.15rem 0.6rem;border-radius:99px}
+.pricing-card h3{font-size:1rem;margin-bottom:0.3rem}
+.pricing-card .price{font-size:1.8rem;font-weight:700;margin-bottom:0.3rem}
+.pricing-card .price span{font-size:0.85rem;color:#888;font-weight:400}
+.pricing-card ul{list-style:none;font-size:0.8rem;color:#aaa;margin:1rem 0;text-align:left}
+.pricing-card ul li{padding:0.3rem 0;display:flex;align-items:center;gap:0.4rem}
+.pricing-card ul li::before{content:'✓';color:#4ade80;font-weight:700}
+
+/* forms */
+.form-group{margin-bottom:1rem}
+.form-group label{display:block;font-size:0.8rem;color:#aaa;margin-bottom:0.3rem}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:0.6rem 0.8rem;border:1px solid #2a2a2a;border-radius:6px;background:#1a1a1a;color:#e5e5e5;font-size:0.9rem;outline:none;font-family:inherit}
+.form-group input:focus,.form-group select:focus{border-color:#ef4444}
+.form-group textarea{resize:vertical;min-height:60px}
+.btn{display:inline-block;padding:0.6rem 1.5rem;border-radius:6px;font-size:0.9rem;font-weight:600;border:none;cursor:pointer;transition:all 0.15s;font-family:inherit}
 .btn-primary{background:#ef4444;color:#fff}
 .btn-primary:hover{background:#dc2626}
 .btn-outline{background:transparent;color:#e5e5e5;border:1px solid #333}
 .btn-outline:hover{background:#1a1a1a}
-.btn-small{padding:0.4rem 1rem;font-size:0.85rem}
+.btn-sm{padding:0.35rem 0.9rem;font-size:0.8rem}
+.btn-danger{background:#7f1d1d;color:#fca5a5;border:1px solid #991b1b}
+.btn-danger:hover{background:#991b1b}
 
-/* sections */
-section{padding:3rem 0}
-section h2{font-size:1.5rem;font-weight:700;margin-bottom:0.5rem}
-section .sub{color:#888;font-size:0.95rem;margin-bottom:2rem}
+/* page sections */
+.page{display:none}
+.page.active{display:block}
+.page h2{font-size:1.3rem;font-weight:700;margin-bottom:0.3rem}
+.page .desc{color:#888;font-size:0.9rem;margin-bottom:1.5rem}
 
-/* feature cards */
-.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.25rem}
-.feature{background:#121213;border:1px solid #1f1f1f;border-radius:12px;padding:1.5rem}
-.feature h3{font-size:1rem;margin-bottom:0.5rem}
-.feature p{font-size:0.85rem;color:#888}
-.feature .icon{font-size:1.5rem;margin-bottom:0.5rem}
+/* cards */
+.card{background:#121213;border:1px solid #1f1f1f;border-radius:10px;padding:1.25rem;margin-bottom:1rem}
+.card h3{font-size:1rem;margin-bottom:0.75rem;display:flex;align-items:center;gap:0.5rem}
 
-/* pricing */
-.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.25rem}
-.pricing-card{background:#121213;border:1px solid #1f1f1f;border-radius:12px;padding:2rem;text-align:center}
-.pricing-card.featured{border-color:#ef4444;position:relative}
-.pricing-card.featured::before{content:'추천';position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:#ef4444;color:#fff;font-size:0.7rem;font-weight:600;padding:0.2rem 0.8rem;border-radius:99px}
-.pricing-card h3{font-size:1.1rem;margin-bottom:0.5rem}
-.pricing-card .price{font-size:2rem;font-weight:700;margin-bottom:0.5rem}
-.pricing-card .price span{font-size:0.9rem;color:#888;font-weight:400}
-.pricing-card ul{text-align:left;margin:1.5rem 0;list-style:none;font-size:0.85rem;color:#aaa}
-.pricing-card ul li{padding:0.35rem 0;display:flex;align-items:center;gap:0.5rem}
-.pricing-card ul li::before{content:'✓';color:#4ade80;font-weight:700}
+/* stats grid */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1rem;margin-bottom:1.5rem}
+.stat{background:#121213;border:1px solid #1f1f1f;border-radius:10px;padding:1rem;text-align:center}
+.stat .num{font-size:1.6rem;font-weight:700}
+.stat .label{font-size:0.8rem;color:#888;margin-top:0.2rem}
 
-/* form */
-.form-section{max-width:400px;margin:0 auto}
-.form-group{margin-bottom:1rem}
-.form-group label{display:block;font-size:0.85rem;color:#aaa;margin-bottom:0.35rem}
-.form-group input{width:100%;padding:0.65rem 0.8rem;border:1px solid #2a2a2a;border-radius:6px;background:#1a1a1a;color:#e5e5e5;font-size:0.95rem;outline:none}
-.form-group input:focus{border-color:#ef4444}
-.form-error{color:#ef4444;font-size:0.85rem;margin-bottom:0.5rem}
-.form-success{color:#4ade80;font-size:0.85rem;margin-bottom:0.5rem}
-.form-toggle{text-align:center;font-size:0.85rem;color:#888;margin-top:1rem}
-.form-toggle a{color:#f44;cursor:pointer}
+/* tables */
+table{width:100%;border-collapse:collapse;font-size:0.85rem}
+th,td{text-align:left;padding:0.65rem 0.5rem;border-bottom:1px solid #1a1a1b}
+th{color:#888;font-weight:600;font-size:0.75rem;text-transform:uppercase}
+tr:hover td{background:#141415}
 
-/* dashboard */
-.dashboard{display:none}
-.dashboard.show{display:block}
-.dash-card{background:#121213;border:1px solid #1f1f1f;border-radius:12px;padding:1.5rem;margin-bottom:1.25rem}
-.dash-card h3{font-size:1rem;margin-bottom:0.75rem;display:flex;align-items:center;gap:0.5rem}
-.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1rem;margin-bottom:1rem}
-.stat{text-align:center;padding:1rem;background:#0f0f0f;border-radius:8px}
-.stat .num{font-size:1.5rem;font-weight:700}
-.stat .label{font-size:0.8rem;color:#888}
-.api-key-box{display:flex;align-items:center;gap:0.5rem;background:#0a0a0b;border:1px solid #2a2a2a;border-radius:6px;padding:0.65rem 1rem;font-family:'SF Mono','Consolas',monospace;font-size:0.85rem;word-break:break-all}
-.api-key-box .copy{cursor:pointer;color:#888;flex-shrink:0;font-size:0.8rem;padding:0.2rem 0.5rem;border:1px solid #333;border-radius:4px}
-.api-key-box .copy:hover{color:#fff;border-color:#666}
-footer{text-align:center;padding:3rem 0;color:#444;font-size:0.8rem}
+/* badges */
+.badge{display:inline-block;font-size:0.65rem;padding:0.15rem 0.5rem;border-radius:99px;font-weight:600}
+.badge-high{background:#3b1e1e;color:#f87171}
+.badge-medium{background:#3b2e1e;color:#fbbf24}
+.badge-clear{background:#1e3b2e;color:#4ade80}
+.badge-list{background:#1e1e3b;color:#818cf8}
 
-.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:0.75rem 1.5rem;font-size:0.9rem;display:none;z-index:999}
+/* search results */
+.result-item{padding:0.75rem;border:1px solid #1f1f1f;border-radius:8px;margin-bottom:0.5rem;background:#0f0f10}
+.result-item .name{font-weight:600;color:#fff;margin-bottom:0.2rem}
+.result-item .meta{font-size:0.8rem;color:#888}
+.result-item .meta span{margin-right:1rem}
+
+/* api key box */
+.key-box{display:flex;align-items:center;gap:0.5rem;background:#0a0a0b;border:1px solid #2a2a2a;border-radius:6px;padding:0.5rem 0.75rem;font-family:'JetBrains Mono','Consolas',monospace;font-size:0.8rem;word-break:break-all}
+.key-box .cpy{padding:0.15rem 0.4rem;border:1px solid #333;border-radius:4px;cursor:pointer;font-size:0.7rem;white-space:nowrap}
+
+/* toast */
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:0.6rem 1.25rem;font-size:0.85rem;display:none;z-index:9999;white-space:nowrap}
 .toast.show{display:block}
+
+/* tab */
+.tabs{display:flex;gap:0;border-bottom:1px solid #1f1f1f;margin-bottom:1.25rem}
+.tabs button{background:none;border:none;color:#888;padding:0.6rem 1rem;cursor:pointer;font-size:0.85rem;border-bottom:2px solid transparent;font-family:inherit}
+.tabs button:hover{color:#e5e5e5}
+.tabs button.active{color:#ef4444;border-bottom-color:#ef4444}
+
+/* modal */
+.modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:9998;display:none}
+.modal.show{display:flex}
+.modal-content{background:#121213;border:1px solid #2a2a2a;border-radius:12px;padding:1.5rem;width:90%;max-width:500px;max-height:80vh;overflow-y:auto}
+
+@media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.main{margin-left:0;padding:1rem}.landing h1{font-size:1.8rem}}
 </style>
 </head>
 <body>
 
-<nav>
-  <div class="logo">OFAC<span>API</span></div>
-  <div class="nav-links">
-    <a href="#features">기능</a>
-    <a href="#pricing">가격</a>
-    <a href="#signup" id="nav-signup">시작하기</a>
+<div class="app" id="app">
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div class="logo">OFAC<span>KYC</span></div>
+    <nav id="main-nav">
+      <a onclick="nav('dashboard')" data-page="dashboard">📊 대시보드</a>
+      <a onclick="nav('search-page')" data-page="search-page">🔍 개별 검색</a>
+      <a onclick="nav('batch-page')" data-page="batch-page">📋 배치 스크리닝</a>
+      <a onclick="nav('customers')" data-page="customers">👤 고객 관리</a>
+      <a onclick="nav('audit')" data-page="audit">📜 감사 로그</a>
+      <a onclick="nav('settings')" data-page="settings">⚙️ 설정</a>
+    </nav>
+    <div class="user-info" id="sidebar-user">
+      <div id="s-email" style="font-weight:600;color:#888"></div>
+      <div style="margin-top:0.3rem"><span id="s-plan" class="badge badge-clear"></span></div>
+    </div>
   </div>
-</nav>
 
-<div class="hero">
-  <div class="badge">실시간 미국 OFAC SDN 제재 데이터</div>
-  <h1>OFAC 제재 대상, <span>1초</span> 만에 확인</h1>
-  <p>이름/조직명 하나로 미국 재무부 제재 대상(SDN) 명단을 실시간 검색. KYC/AML 규제 대응에 필수적인 도구입니다.</p>
-  <div class="cta">
-    <button class="btn btn-primary" onclick="showSignup()">무료로 시작하기</button>
-    <button class="btn btn-outline" onclick="showLogin()">로그인</button>
+  <!-- Main -->
+  <div class="main">
+
+    <!-- Landing -->
+    <div class="landing" id="landing">
+      <div class="badge">글로벌 제재 리스트 5종 + PEP 통합</div>
+      <h1>KYC 스크리닝, <span>1초</span>면 끝</h1>
+      <p>미국 OFAC, EU, UN, 영국 HMT 제재 명단 + 정치적 주요 인사(PEP)를 한 번에 검색. 퍼지 매칭으로 오탐지 최소화. 감사 로그 자동 저장.</p>
+      <div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap;margin-bottom:1.5rem">
+        <button class="btn btn-primary" onclick="showPage('login',this)">무료 시작하기</button>
+        <button class="btn btn-outline" onclick="showPage('login',this);toggleForm()">로그인</button>
+      </div>
+      <div class="pricing">
+        <div class="pricing-card">
+          <h3>Free</h3>
+          <div class="price">₩0<span>/월</span></div>
+          <ul><li>일 100회 검색</li><li>5개 제재 리스트</li><li>PEP 스크리닝</li><li>1개 API 키</li></ul>
+          <button class="btn btn-outline btn-sm" onclick="showPage('login',this)">시작하기</button>
+        </div>
+        <div class="pricing-card featured">
+          <h3>Pro</h3>
+          <div class="price">₩50,000<span>/월</span></div>
+          <ul><li>일 10,000회 검색</li><li>배치 스크리닝 (CSV)</li><li>고객 관리</li><li>감사 로그</li><li>10개 API 키</li><li>이메일 지원</li></ul>
+          <button class="btn btn-primary btn-sm" onclick="showPage('login',this)">시작하기</button>
+        </div>
+        <div class="pricing-card">
+          <h3>Enterprise</h3>
+          <div class="price">문의<span></span></div>
+          <ul><li>무제한</li><li>온프레미스</li><li>EU/UN/UK 추가 리스트</li><li>SLA 보장</li></ul>
+          <button class="btn btn-outline btn-sm" onclick="location.href='mailto:pro@ofac-api.kr'">문의</button>
+        </div>
+      </div>
+      <div class="features" style="margin-top:0">
+        <div class="feature"><div class="icon">🇺🇸🇪🇺🇺🇳🇬🇧</div><h3>5개 제재 리스트</h3><p>미국 OFAC, EU, UN, 영국 HMT + PEP 데이터 통합</p></div>
+        <div class="feature"><div class="icon">🎯</div><h3>퍼지 매칭</h3><p>Levenshtein 기반 유사도 검색. 영문+한글 지원</p></div>
+        <div class="feature"><div class="icon">📋</div><h3>배치 스크리닝</h3><p>CSV 업로드 한 번에 100명까지 일괄 처리</p></div>
+        <div class="feature"><div class="icon">🔒</div><h3>감사 로그</h3><p>모든 검색 기록 자동 저장. 규제 대응 가능</p></div>
+      </div>
+      <div id="login-form" style="max-width:380px;margin:0 auto;display:none">
+        <div id="form-err" style="color:#ef4444;font-size:0.85rem;margin-bottom:0.5rem"></div>
+        <div id="form-ok" style="color:#4ade80;font-size:0.85rem;margin-bottom:0.5rem"></div>
+        <div id="signup-box">
+          <div class="form-group"><label>이메일</label><input type="email" id="su-e" placeholder="name@company.kr"></div>
+          <div class="form-group"><label>비밀번호</label><input type="password" id="su-p" placeholder="6자 이상"></div>
+          <div class="form-group"><label>회사명 (선택)</label><input type="text" id="su-c" placeholder="회사명"></div>
+          <button class="btn btn-primary" style="width:100%" onclick="doSignup()">회원가입</button>
+          <div style="text-align:center;font-size:0.8rem;color:#888;margin-top:0.75rem">이미 계정이? <a onclick="toggleForm()" style="cursor:pointer">로그인</a></div>
+        </div>
+        <div id="login-box" style="display:none">
+          <div class="form-group"><label>이메일</label><input type="email" id="li-e" placeholder="name@company.kr"></div>
+          <div class="form-group"><label>비밀번호</label><input type="password" id="li-p" placeholder="비밀번호"></div>
+          <button class="btn btn-primary" style="width:100%" onclick="doLogin()">로그인</button>
+          <div style="text-align:center;font-size:0.8rem;color:#888;margin-top:0.75rem">계정이 없나요? <a onclick="toggleForm()" style="cursor:pointer">회원가입</a></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="page" id="page-dashboard">
+      <h2>대시보드</h2>
+      <p class="desc">전체 현황 및 사용량</p>
+      <div class="stats" id="dash-stats"></div>
+      <div class="card"><h3>🔑 API 키</h3><div class="key-box" id="dash-key-box"><span id="dash-key">-</span><span class="cpy" onclick="copyKey()">복사</span></div></div>
+      <div class="card" style="margin-top:1rem"><h3>📊 리스트 현황</h3><div id="dash-lists"></div></div>
+    </div>
+
+    <!-- Search -->
+    <div class="page" id="page-search-page">
+      <h2>개별 검색</h2>
+      <p class="desc">이름 하나로 5개 제재 리스트 + PEP 동시 검색</p>
+      <div style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap">
+        <input type="text" id="search-q" placeholder="이름 입력 (영문/한국어)" style="flex:1;min-width:200px;padding:0.6rem 0.8rem;border:1px solid #2a2a2a;border-radius:6px;background:#1a1a1a;color:#e5e5e5;font-size:0.9rem;outline:none">
+        <button class="btn btn-primary" onclick="doSearch()">검색</button>
+      </div>
+      <div id="search-results"></div>
+    </div>
+
+    <!-- Batch -->
+    <div class="page" id="page-batch-page">
+      <h2>배치 스크리닝</h2>
+      <p class="desc">여러 이름을 한 번에 스크리닝 (최대 100명)</p>
+      <div class="card">
+        <h3>📋 이름 목록 입력</h3>
+        <div class="form-group"><textarea id="batch-input" rows="6" placeholder="한 줄에 한 명씩&#10;Kim Jong Un&#10;Vladimir Putin&#10;Joe Biden" style="font-family:'JetBrains Mono',monospace;font-size:0.8rem"></textarea></div>
+        <button class="btn btn-primary" onclick="doBatch()">스크리닝 시작</button>
+      </div>
+      <div id="batch-results"></div>
+    </div>
+
+    <!-- Customers -->
+    <div class="page" id="page-customers">
+      <h2>고객 관리</h2>
+      <p class="desc">고객 등록 → 제재 스크리닝 → 이력 관리</p>
+      <div style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap">
+        <input type="text" id="cust-name" placeholder="고객명" style="padding:0.5rem 0.7rem;border:1px solid #2a2a2a;border-radius:6px;background:#1a1a1a;color:#e5e5e5;font-size:0.85rem;outline:none">
+        <button class="btn btn-primary btn-sm" onclick="addCustomer()">+ 고객 등록</button>
+      </div>
+      <div id="cust-list"></div>
+    </div>
+
+    <!-- Audit -->
+    <div class="page" id="page-audit">
+      <h2>감사 로그</h2>
+      <p class="desc">모든 스크리닝 기록 (규제 대응용)</p>
+      <div id="audit-list"></div>
+    </div>
+
+    <!-- Settings -->
+    <div class="page" id="page-settings">
+      <h2>설정</h2>
+      <p class="desc">API 키 관리 및 프로필</p>
+      <div class="card"><h3>🔑 API 키</h3><div class="key-box" style="margin-bottom:0.75rem"><span id="set-key">-</span><span class="cpy" onclick="copyKey2()">복사</span></div><button class="btn btn-outline btn-sm" onclick="rotateKey()">키 재발급</button></div>
+      <div class="card"><h3>📖 API 사용법</h3>
+        <pre id="api-example" style="background:#0a0a0b;border:1px solid #2a2a2a;border-radius:6px;padding:0.75rem;font-size:0.75rem;overflow-x:auto;white-space:pre-wrap;word-break:break-all"></pre>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="logout()">로그아웃</button>
+    </div>
+
   </div>
 </div>
-
-<section id="features">
-  <div class="container">
-    <h2>왜 OFAC API 인가요?</h2>
-    <p class="sub">World-Check, Dow Jones Risk 대비 99% 저렴한 OFAC 전용 검색</p>
-    <div class="features">
-      <div class="feature"><div class="icon">📡</div><h3>실시간 제재 데이터</h3><p>OpenSanctions 최신 OFAC SDN 명단 자동 동기화. 24시간 간격 갱신.</p></div>
-      <div class="feature"><div class="icon">🔍</div><h3>부분 매칭 검색</h3><p>정확한 이름뿐 아니라 별칭, 유사어 포함 검색. 이명(aliases) 자동 탐지.</p></div>
-      <div class="feature"><div class="icon">📋</div><h3>유형별 필터링</h3><p>개인, 기업, 선박, 항공기 등 유형별 검색. 특정 범주만 집중 확인.</p></div>
-      <div class="feature"><div class="icon">🔒</div><h3>API 키 인증</h3><p>Bearer Token 기반 간편 인증. 사용량 대시보드에서 실시간 확인.</p></div>
-      <div class="feature"><div class="icon">🇰🇷</div><h3>한국어 지원</h3><p>국문 데이터 처리. 한국 기업/KYC 담당자 맞춤 설계. 한글 설명서 제공.</p></div>
-      <div class="feature"><div class="icon">💰</div><h3>합리적 가격</h3><p>Free 티어 100회/일 제공. Pro는 월 5만원에 무제한.</p></div>
-    </div>
-  </div>
-</section>
-
-<section id="pricing">
-  <div class="container">
-    <h2>가격 정책</h2>
-    <p class="sub">스타트업부터 기업까지, 규모에 맞게 시작하세요</p>
-    <div class="pricing-grid">
-      <div class="pricing-card">
-        <h3>Free</h3>
-        <div class="price">₩0<span>/월</span></div>
-        <ul>
-          <li>일 100회 검색</li>
-          <li>기본 검색 API</li>
-          <li>1개 API 키</li>
-          <li>커뮤니티 지원</li>
-        </ul>
-        <button class="btn btn-outline btn-small" onclick="showSignup()">시작하기</button>
-      </div>
-      <div class="pricing-card featured">
-        <h3>Pro</h3>
-        <div class="price">₩50,000<span>/월</span></div>
-        <ul>
-          <li>일 10,000회 검색</li>
-          <li>모든 검색 API</li>
-          <li>10개 API 키</li>
-          <li>이메일 지원</li>
-          <li>사용량 대시보드</li>
-          <li>Audit log</li>
-        </ul>
-        <button class="btn btn-primary btn-small" onclick="showSignup()">시작하기</button>
-      </div>
-      <div class="pricing-card">
-        <h3>Enterprise</h3>
-        <div class="price">문의<span></span></div>
-        <ul>
-          <li>무제한 검색</li>
-          <li>EU/UN 제재 목록 추가</li>
-          <li>전담 담당자 배정</li>
-          <li>SLA 보장</li>
-          <li>온프레미스 가능</li>
-        </ul>
-        <button class="btn btn-outline btn-small" onclick="location.href='mailto:pro@ofac-api.kr?subject=Enterprise%20문의'">문의하기</button>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section id="signup">
-  <div class="container">
-    <h2 id="form-title">시작하기</h2>
-    <p class="sub" id="form-sub">가입 후 바로 API 키를 발급받으세요</p>
-    <div class="form-section">
-      <div id="form-error" class="form-error"></div>
-      <div id="form-success" class="form-success"></div>
-      <div id="signup-form">
-        <div class="form-group"><label>이메일</label><input type="email" id="su-email" placeholder="name@company.kr"></div>
-        <div class="form-group"><label>비밀번호</label><input type="password" id="su-password" placeholder="6자 이상"></div>
-        <div class="form-group"><label>회사명 (선택)</label><input type="text" id="su-company" placeholder="회사명"></div>
-        <button class="btn btn-primary" style="width:100%" onclick="doSignup()">회원가입</button>
-        <div class="form-toggle">이미 계정이 있나요? <a onclick="showLogin()">로그인</a></div>
-      </div>
-      <div id="login-form" style="display:none">
-        <div class="form-group"><label>이메일</label><input type="email" id="li-email" placeholder="name@company.kr"></div>
-        <div class="form-group"><label>비밀번호</label><input type="password" id="li-password" placeholder="비밀번호"></div>
-        <button class="btn btn-primary" style="width:100%" onclick="doLogin()">로그인</button>
-        <div class="form-toggle">계정이 없으신가요? <a onclick="showSignup()">회원가입</a></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Dashboard (shown after login) -->
-<div class="container dashboard" id="dashboard">
-  <div style="display:flex;justify-content:space-between;align-items:center;padding:1.5rem 0">
-    <h2 style="margin:0">대시보드</h2>
-    <button class="btn btn-outline btn-small" onclick="doLogout()">로그아웃</button>
-  </div>
-
-  <div class="stat-row">
-    <div class="stat"><div class="num" id="d-plan">-</div><div class="label">현재 플랜</div></div>
-    <div class="stat"><div class="num" id="d-today">-</div><div class="label">오늘 사용량</div></div>
-    <div class="stat"><div class="num" id="d-limit">-</div><div class="label">일일 한도</div></div>
-    <div class="stat"><div class="num" id="d-total">-</div><div class="label">전체 사용량</div></div>
-  </div>
-
-  <div class="dash-card">
-    <h3>🔑 내 API 키</h3>
-    <div class="api-key-box" id="d-api-key-box">
-      <span id="d-api-key">-</span>
-      <span class="copy" onclick="copyApiKey()">복사</span>
-    </div>
-    <div style="margin-top:0.75rem">
-      <button class="btn btn-outline btn-small" onclick="rotateKey()">키 재발급</button>
-    </div>
-  </div>
-
-  <div class="dash-card">
-    <h3>📖 API 사용법</h3>
-    <p style="font-size:0.85rem;color:#888;margin-bottom:0.75rem">
-      검색 API 호출 예시 (curl):
-    </p>
-    <code style="display:block;background:#0a0a0b;border:1px solid #2a2a2a;border-radius:6px;padding:0.75rem 1rem;font-size:0.8rem;word-break:break-all" id="d-curl-example"></code>
-  </div>
-
-  <div class="dash-card">
-    <h3>📋 최근 검색 기록</h3>
-    <p style="font-size:0.85rem;color:#888">Pro 플랜에서 제공 예정입니다.</p>
-  </div>
-</div>
-
-<footer>
-  <div class="container">
-    데이터 출처: <a href="https://www.opensanctions.org" target="_blank">OpenSanctions</a> (CC-BY 4.0) &middot; US OFAC SDN 리스트 기반<br>
-    문의: <a href="mailto:pro@ofac-api.kr">pro@ofac-api.kr</a>
-  </div>
-</footer>
-
 <div class="toast" id="toast"></div>
 
 <script>
-var AUTH_KEY = 'ofac_api_key';
-var apiKey = localStorage.getItem(AUTH_KEY);
+var AK = 'ofac_api_key';
+var key = localStorage.getItem(AK);
+var USER = null;
+var LISTS = ['us_ofac_sdn','eu_fsf','un_sc_sanctions','gb_hmt_sanctions','pep_openpep'];
 
-function show(el) { document.getElementById(el).style.display = 'block'; }
-function hide(el) { document.getElementById(el).style.display = 'none'; }
-function toast(msg) { var t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(function(){t.classList.remove('show')},2500); }
+function qs(s) { return document.querySelector(s); }
+function qsa(s) { return document.querySelectorAll(s); }
+function byId(s) { return document.getElementById(s); }
+function show(s){var e=byId(s);if(e)e.style.display=''}
 
-function showSignup() {
-  hide('login-form'); show('signup-form');
-  document.getElementById('form-title').textContent = '시작하기';
-  document.getElementById('form-sub').textContent = '가입 후 바로 API 키를 발급받으세요';
-  document.getElementById('form-error').textContent = '';
-  document.getElementById('form-success').textContent = '';
-  document.getElementById('signup').scrollIntoView({behavior:'smooth'});
+function toast(m){var t=byId('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2500)}
+
+function showPage(p,btn){
+  qsa('.page').forEach(function(e){e.classList.remove('active')});
+  var pg=byId('page-'+p);
+  if(pg){pg.classList.add('active');byId('landing').style.display='none'}
+  qsa('.sidebar nav a').forEach(function(a){a.classList.remove('active')});
+  if(btn)btn.classList.add('active');
+  else{qsa('.sidebar nav a').forEach(function(a){if(a.dataset.page===p)a.classList.add('active')})}
 }
 
-function showLogin() {
-  hide('signup-form'); show('login-form');
-  document.getElementById('form-title').textContent = '로그인';
-  document.getElementById('form-sub').textContent = 'API 키를 확인하세요';
-  document.getElementById('form-error').textContent = '';
-  document.getElementById('form-success').textContent = '';
+function nav(p){showPage(p,null);if(p==='dashboard')loadDashboard();if(p==='audit')loadAudit();if(p==='customers')loadCustomers()}
+
+function toggleForm(){
+  var s=byId('signup-box'),l=byId('login-box');
+  if(s.style.display==='none'){s.style.display='';l.style.display='none'}
+  else{s.style.display='none';l.style.display=''}
 }
 
-function showDashboard(data) {
-  document.getElementById('signup').style.display = 'none';
-  document.getElementById('features').style.display = 'none';
-  document.getElementById('pricing').style.display = 'none';
-  document.getElementById('dashboard').classList.add('show');
-  document.getElementById('nav-signup').textContent = '대시보드';
-
-  document.getElementById('d-plan').textContent = data.plan.toUpperCase();
-  document.getElementById('d-today').textContent = data.usage.today;
-  document.getElementById('d-limit').textContent = data.usage.limit;
-  document.getElementById('d-total').textContent = data.usage.total;
-  document.getElementById('d-api-key').textContent = data.keys[0] ? data.keys[0].key : '-';
-  document.getElementById('d-curl-example').textContent = 'curl -H "Authorization: Bearer ' + (data.keys[0] ? data.keys[0].key : 'YOUR_KEY') + '" "https://ofac-api.kr/api/search?q=putin"';
+function doSignup(){
+  var e=byId('su-e').value.trim(),p=byId('su-p').value,c=byId('su-c').value.trim();
+  byId('form-err').textContent='';byId('form-ok').textContent='';
+  if(!e||!p){byId('form-err').textContent='이메일과 비밀번호를 입력하세요';return}
+  fetch('/api/signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:e,password:p,company:c})}).then(function(r){return r.json()}).then(function(d){
+    if(d.error){byId('form-err').textContent=d.error;return}
+    key=d.apiKey;localStorage.setItem(AK,key);byId('form-ok').textContent='✅ 가입 완료! API 키가 발급되었습니다.';initApp()
+  }).catch(function(){byId('form-err').textContent='네트워크 오류'})
 }
 
-function hideDashboard() {
-  document.getElementById('signup').style.display = '';
-  document.getElementById('features').style.display = '';
-  document.getElementById('pricing').style.display = '';
-  document.getElementById('dashboard').classList.remove('show');
-  document.getElementById('nav-signup').textContent = '시작하기';
+function doLogin(){
+  var e=byId('li-e').value.trim(),p=byId('li-p').value;
+  byId('form-err').textContent='';byId('form-ok').textContent='';
+  if(!e||!p){byId('form-err').textContent='입력해주세요';return}
+  fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:e,password:p})}).then(function(r){return r.json()}).then(function(d){
+    if(d.error){byId('form-err').textContent=d.error;return}
+    key=d.apiKey;localStorage.setItem(AK,key);initApp()
+  }).catch(function(){byId('form-err').textContent='네트워크 오류'})
 }
 
-async function doSignup() {
-  var email = document.getElementById('su-email').value.trim();
-  var password = document.getElementById('su-password').value;
-  var company = document.getElementById('su-company').value.trim();
-  document.getElementById('form-error').textContent = '';
-  document.getElementById('form-success').textContent = '';
-  if (!email || !password) { document.getElementById('form-error').textContent = '이메일과 비밀번호를 입력해주세요'; return; }
-  try {
-    var r = await fetch('/api/signup', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email,password,company}) });
-    var d = await r.json();
-    if (!r.ok) { document.getElementById('form-error').textContent = d.error; return; }
-    apiKey = d.apiKey;
-    localStorage.setItem(AUTH_KEY, apiKey);
-    document.getElementById('form-success').textContent = '🎉 가입 완료! API 키가 발급되었습니다.';
-    loadDashboard();
-  } catch(e) { document.getElementById('form-error').textContent = '네트워크 오류'; }
+function logout(){localStorage.removeItem(AK);key=null;USER=null;location.reload()}
+function copyKey(){var t=byId('dash-key').textContent;navigator.clipboard.writeText(t).then(function(){toast('복사됨')})}
+function copyKey2(){var t=byId('set-key').textContent;navigator.clipboard.writeText(t).then(function(){toast('복사됨')})}
+
+function initApp(){
+  byId('landing').style.display='none';
+  byId('sidebar').style.display='';
+  loadDashboard()
 }
 
-async function doLogin() {
-  var email = document.getElementById('li-email').value.trim();
-  var password = document.getElementById('li-password').value;
-  document.getElementById('form-error').textContent = '';
-  if (!email || !password) { document.getElementById('form-error').textContent = '이메일과 비밀번호를 입력해주세요'; return; }
-  try {
-    var r = await fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email,password}) });
-    var d = await r.json();
-    if (!r.ok) { document.getElementById('form-error').textContent = d.error; return; }
-    apiKey = d.apiKey;
-    localStorage.setItem(AUTH_KEY, apiKey);
-    loadDashboard();
-  } catch(e) { document.getElementById('form-error').textContent = '네트워크 오류'; }
+function authHeaders(){return {headers:{'Authorization':'Bearer '+key}}}
+
+function api(path,opts){
+  opts=opts||{};opts.headers=opts.headers||{};opts.headers['Authorization']='Bearer '+key;
+  return fetch(path,opts).then(function(r){if(!r.ok)return r.json().then(function(e){throw new Error(e.error||'HTTP '+r.status)});return r.json()})
 }
 
-async function loadDashboard() {
-  try {
-    var r = await fetch('/api/dashboard', { headers:{'Authorization':'Bearer '+apiKey} });
-    if (!r.ok) { localStorage.removeItem(AUTH_KEY); apiKey = null; hideDashboard(); toast('세션이 만료되었습니다'); return; }
-    var d = await r.json();
-    showDashboard(d);
-  } catch(e) { toast('대시보드 로딩 실패'); }
+function loadDashboard(){
+  showPage('dashboard',null);
+  api('/api/dashboard').then(function(d){
+    USER=d;
+    byId('s-email').textContent=d.email;
+    byId('s-plan').textContent=d.plan.toUpperCase();
+    byId('dash-key').textContent=d.keys[0]?d.keys[0].key:'-';
+    loadStats()
+  }).catch(function(e){toast(e.message)})
 }
 
-async function rotateKey() {
-  if (!confirm('기존 API 키가 즉시 만료됩니다. 계속할까요?')) return;
-  try {
-    var r = await fetch('/api/rotate-key', { method:'POST', headers:{'Authorization':'Bearer '+apiKey} });
-    var d = await r.json();
-    if (!r.ok) { toast(d.error); return; }
-    apiKey = d.apiKey;
-    localStorage.setItem(AUTH_KEY, apiKey);
-    toast('새 API 키가 발급되었습니다');
-    loadDashboard();
-  } catch(e) { toast('키 재발급 실패'); }
+function loadStats(){
+  api('/api/stats').then(function(s){
+    byId('dash-stats').innerHTML=
+      '<div class="stat"><div class="num">'+s.totalScreens+'</div><div class="label">총 검색</div></div>'+
+      '<div class="stat"><div class="num" style="color:#f87171">'+s.high+'</div><div class="label">HIGH 위험</div></div>'+
+      '<div class="stat"><div class="num" style="color:#fbbf24">'+s.medium+'</div><div class="label">MEDIUM</div></div>'+
+      '<div class="stat"><div class="num" style="color:#4ade80">'+s.clear+'</div><div class="label">이상 없음</div></div>'+
+      '<div class="stat"><div class="num">'+s.customers+'</div><div class="label">등록 고객</div></div>';
+  });
+
+  fetch('/api/health').then(function(r){return r.json()}).then(function(h){
+    byId('dash-lists').innerHTML='<span style="font-size:0.85rem;color:#888">총 '+h.entries+'개 엔티티 · '+h.lists+'개 리스트</span>';
+  })
 }
 
-function copyApiKey() {
-  var key = document.getElementById('d-api-key').textContent;
-  navigator.clipboard.writeText(key).then(function(){ toast('복사됨'); });
+function doSearch(){
+  var q=byId('search-q').value.trim();
+  if(!q||q.length<2){toast('2자 이상 입력');return}
+  byId('search-results').innerHTML='<div style="color:#888">검색 중...</div>';
+  api('/api/search?q='+encodeURIComponent(q)+'&limit=20').then(function(d){
+    if(!d.matches||!d.matches.length){byId('search-results').innerHTML='<div class="card" style="color:#888">검색 결과 없음</div>';return}
+    byId('search-results').innerHTML='<div style="font-size:0.85rem;color:#888;margin-bottom:0.75rem">총 '+d.total+'건 매칭</div>'+
+      d.matches.map(function(m){return '<div class="result-item"><div class="name">'+esc(m.name)+' <span class="badge badge-list">'+m.schema+'</span> <span class="badge '+(m.source.indexOf('PEP')>=0?'badge-medium':'badge-high')+'">'+esc(m.source)+'</span></div><div class="meta">'+
+      (m.countries&&m.countries.length?'<span>국가: '+m.countries.join(', ')+'</span>':'')+
+      (m.programs&&m.programs.length?'<span>프로그램: '+m.programs.slice(0,3).join(', ')+'</span>':'')+
+      '</div></div>'}).join('')
+  }).catch(function(e){byId('search-results').innerHTML='<div style="color:#ef4444">'+e.message+'</div>'})
 }
 
-function doLogout() {
-  localStorage.removeItem(AUTH_KEY);
-  apiKey = null;
-  hideDashboard();
-  toast('로그아웃되었습니다');
+byId('search-q').addEventListener('keydown',function(e){if(e.key==='Enter')doSearch()});
+
+function doBatch(){
+  var text=byId('batch-input').value.trim();
+  if(!text){toast('이름을 입력하세요');return}
+  var names=text.split('\n').map(function(s){return s.trim()}).filter(Boolean);
+  if(names.length<1){toast('최소 1명 입력');return}
+  if(names.length>100){toast('최대 100명');return}
+  byId('batch-results').innerHTML='<div style="color:#888">스크리닝 중...</div>';
+  api('/api/batch',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({names:names})}).then(function(d){
+    var high=d.results.filter(function(r){return r.risk==='HIGH'}),med=d.results.filter(function(r){return r.risk==='MEDIUM'});
+    byId('batch-results').innerHTML=
+      '<div class="stats" style="margin-bottom:1rem">'+
+      '<div class="stat"><div class="num" style="color:#f87171">'+d.high+'</div><div class="label">HIGH</div></div>'+
+      '<div class="stat"><div class="num" style="color:#fbbf24">'+d.medium+'</div><div class="label">MEDIUM</div></div>'+
+      '<div class="stat"><div class="num" style="color:#4ade80">'+d.clear+'</div><div class="label">CLEAR</div></div>'+
+      '</div>'+
+      d.results.map(function(r){return '<div class="result-item"><div class="name">'+esc(r.query)+' <span class="badge badge-'+r.risk.toLowerCase()+'">'+r.risk+'</span></div>'+
+        (r.matches.length?'<div class="meta">'+r.matches.map(function(m){return esc(m.name)+' ('+esc(m.source)+')'}).join(', ')+'</div>':'<div class="meta" style="color:#4ade80">이상 없음</div>')+
+        '</div>'}
+      ).join('')
+  }).catch(function(e){byId('batch-results').innerHTML='<div style="color:#ef4444">'+e.message+'</div>'})
 }
 
-// auto-login
-if (apiKey) { loadDashboard(); }
+function addCustomer(){
+  var name=byId('cust-name').value.trim();
+  if(!name){toast('고객명 입력');return}
+  api('/api/customers',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:name})}).then(function(){
+    byId('cust-name').value='';loadCustomers()
+  }).catch(function(e){toast(e.message)})
+}
+
+function loadCustomers(){
+  showPage('customers',null);
+  api('/api/customers').then(function(d){
+    if(!d.customers||!d.customers.length){byId('cust-list').innerHTML='<div class="card" style="color:#888">등록된 고객이 없습니다</div>';return}
+    byId('cust-list').innerHTML=
+      '<table><thead><tr><th>이름</th><th>스크리닝</th><th>최종 검색</th><th>작업</th></tr></thead><tbody>'+
+      d.customers.map(function(c){return '<tr><td style="font-weight:600">'+esc(c.name)+'</td><td>'+(c.screenCount||0)+'회</td><td>'+(c.lastScreen?new Date(c.lastScreen).toLocaleString('ko-KR'):'-')+'</td><td><button class="btn btn-outline btn-sm" onclick="screenCustomer(\''+c.id+'\')">스크리닝</button></td></tr>'}
+      ).join('')+'</tbody></table>'
+  })
+}
+
+function screenCustomer(id){
+  api('/api/customers/'+id+'/screen',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}).then(function(d){
+    var r=d.result;
+    var msg=r.risk==='HIGH'?'⚠️ 제재 대상 발견!':r.risk==='MEDIUM'?'⚠️ 유사명 발견':'✅ 이상 없음';
+    toast(msg+' ('+r.matches.length+'건 매칭)');
+    loadCustomers()
+  }).catch(function(e){toast(e.message)})
+}
+
+function loadAudit(){
+  showPage('audit',null);
+  api('/api/audit').then(function(d){
+    if(!d.audit||!d.audit.length){byId('audit-list').innerHTML='<div class="card" style="color:#888">기록 없음</div>';return}
+    byId('audit-list').innerHTML=
+      '<table><thead><tr><th>시간</th><th>고객</th><th>검색어</th><th>위험도</th><th>매칭</th></tr></thead><tbody>'+
+      d.audit.map(function(a){return '<tr><td style="font-size:0.75rem">'+new Date(a.timestamp).toLocaleString('ko-KR')+'</td><td>'+esc(a.customerName||'-')+'</td><td>'+esc(a.query)+'</td><td><span class="badge badge-'+a.risk.toLowerCase()+'">'+a.risk+'</span></td><td>'+a.matches+'건</td></tr>'}
+      ).join('')+'</tbody></table>'
+  })
+}
+
+function loadSettings(){
+  showPage('settings',null);
+  if(!USER)return;
+  byId('set-key').textContent=USER.keys[0]?USER.keys[0].key:'-';
+  byId('api-example').textContent=
+    '# 개별 검색\ncurl -H "Authorization: Bearer '+(USER.keys[0]?USER.keys[0].key:'YOUR_KEY')+'" \\\n  "'+location.origin+'/api/search?q=putin"\n\n# 배치 스크리닝\ncurl -X POST -H "Authorization: Bearer '+(USER.keys[0]?USER.keys[0].key:'YOUR_KEY')+'" \\\n  -H "Content-Type: application/json" \\\n  -d \'{"names":["Kim Jong Un","Vladimir Putin"]}\' \\\n  "'+location.origin+'/api/batch"'
+}
+
+function rotateKey(){
+  if(!confirm('기존 키가 즉시 만료됩니다. 계속?'))return;
+  api('/api/rotate-key',{method:'POST'}).then(function(d){
+    key=d.apiKey;localStorage.setItem(AK,key);toast('새 API 키 발급됨');loadDashboard()
+  }).catch(function(e){toast(e.message)})
+}
+
+function esc(s){if(typeof s!=='string')return s||'';var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+// init
+if(key){
+  initApp()
+}
 </script>
 </body>
 </html>
